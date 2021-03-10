@@ -33,7 +33,7 @@ module setup
  public :: setpart
 
  real :: m1,m2,ecc,semia,hacc1,rasteroid,norbits,gastemp,gastemp0
- integer :: npart_at_end,dumpsperorbit,ipot
+ integer :: npartperorbit,dumpsperorbit,ipot
 
  private
 
@@ -49,7 +49,7 @@ subroutine setpart(id,npart,npartoftype,xyzh,massoftype,vxyzu,polyk,gamma,hfact,
                             mass1,accradius1
  use io,        only:master,fatal
  use timestep,  only:tmax,dtmax
- !use inject,    only:inject_particles
+ use inject,    only:mdot
  use eos,       only:gmw
  use options,   only:iexternalforce
  use extern_lensethirring, only:blackhole_spin
@@ -79,8 +79,8 @@ subroutine setpart(id,npart,npartoftype,xyzh,massoftype,vxyzu,polyk,gamma,hfact,
  rasteroid     = 2338.3      ! (km)
  gastemp       = 5000.     ! (K)
  norbits       = 1000.
- !mdot          = 5.e8      ! Mass injection rate (g/s)
- npart_at_end  = 1.0e6       ! Number of particles after norbits
+ mdot          = 5.e8      ! Mass injection rate (g/s)
+ npartperorbit  = 1.0e5       ! Number of particles after norbits
  dumpsperorbit = 1
 
 !
@@ -175,8 +175,8 @@ subroutine setpart(id,npart,npartoftype,xyzh,massoftype,vxyzu,polyk,gamma,hfact,
  endif
 
  ! both        of these are reset in the first        call to        inject_particles
- !massoftype(igas) = tmax*mdot/(umass/utime)/npart_at_end
- massoftype(igas) = 1.e-12
+ massoftype(igas) = period*mdot/(umass/utime)/npartperorbit
+ print*,'Mass of particles = ',massoftype(igas)
  hfact = 1.2
  !call inject_particles(time,0.,xyzh,vxyzu,xyzmh_ptmass,vxyz_ptmass,npart,npartoftype,dtinj)
 
@@ -213,7 +213,7 @@ subroutine write_setupfile(filename)
  call write_inopt(gastemp,      'gastemp',      'gas temperature in K',                             iunit)
  call write_inopt(norbits,      'norbits',      'number of orbits',                                 iunit)
  call write_inopt(dumpsperorbit,'dumpsperorbit','number of dumps per orbit',                        iunit)
- call write_inopt(npart_at_end,'npart_at_end','number of particles injected after norbits',iunit)
+ call write_inopt(npartperorbit,'npartperorbit','number of particles injected after norbits',iunit)
  !call write_inopt(mdot,'mdot','mass injection rate (g/s)',iunit)
  close(iunit)
 
@@ -242,7 +242,7 @@ subroutine read_setupfile(filename,ierr)
  call read_inopt(gastemp,      'gastemp',      db,min=0.,errcount=nerr)
  call read_inopt(norbits,      'norbits',      db,min=0.,errcount=nerr)
  call read_inopt(dumpsperorbit,'dumpsperorbit',db,min=0 ,errcount=nerr)
- call read_inopt(npart_at_end, 'npart_at_end', db,min=0 ,errcount=nerr)
+ call read_inopt(npartperorbit, 'npartperorbit', db,min=0 ,errcount=nerr)
  !call read_inopt(mdot,         'mdot',         db,min=0.,errcount=nerr)
  call close_db(db)
  if (nerr > 0) then

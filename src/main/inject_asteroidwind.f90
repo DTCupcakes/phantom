@@ -32,7 +32,6 @@ module inject
 
  private
 
- real         :: npartperorbit = 1000.     ! particle injection rate in particles per orbit
  real         :: vlag          = 0.0      ! percentage lag in velocity of wind
  integer      :: mdot_type     = 2        ! injection rate (0=const, 1=cos(t), 2=r^(-2))
  logical,save :: scaling_set              ! has the scaling been set (initially false)
@@ -122,6 +121,8 @@ subroutine inject_particles(time,dtlast,xyzh,vxyzu,xyzmh_ptmass,vxyz_ptmass,&
     inject_this_step = dt*mdot/massoftype(igas)/(umass/utime)
 
     npinject = max(0, int(0.5 + have_injected + inject_this_step - npartoftype(igas) ))
+    print*,time
+    print*,npinject
 
     ! Save for next step (faster than integrating the whole thing each time)
     t_old = time
@@ -177,7 +178,6 @@ subroutine write_options_inject(iunit)
  integer, intent(in) :: iunit
 
  call write_inopt(mdot         ,'mdot'         ,'mass injection rate in grams/second'              ,iunit)
- call write_inopt(npartperorbit,'npartperorbit','particle injection rate in particles/binary orbit',iunit)
  call write_inopt(vlag         ,'vlag'         ,'percentage lag in velocity of wind'               ,iunit)
  call write_inopt(mdot_type    ,'mdot_type'    ,'injection rate (0=const, 1=cos(t), 2=r^(-2))'     ,iunit)
 
@@ -202,16 +202,10 @@ subroutine read_options_inject(name,valstring,imatch,igotall,ierr)
     read(valstring,*,iostat=ierr) mdot
     ngot = ngot + 1
     if (mdot  <  0.) call fatal(label,'mdot < 0 in input options')
- case('npartperorbit')
-    read(valstring,*,iostat=ierr) npartperorbit
-    ngot = ngot + 1
-    if (npartperorbit < 0.) call fatal(label,'npartperorbit < 0 in input options')
  case('vlag')
     read(valstring,*,iostat=ierr) vlag
-    ngot = ngot + 1
  case('mdot_type')
     read(valstring,*,iostat=ierr) mdot_type
-    ngot = ngot + 1
  case default
     imatch = .false.
  end select
